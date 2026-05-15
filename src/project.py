@@ -6,56 +6,67 @@ Use standard library only.
 
 from __future__ import annotations
 
+import string
 from pathlib import Path
 
 
 def load_text(path: str) -> str:
     """Load and return the full text from a UTF-8 file."""
-    raise NotImplementedError
+    with open(path, encoding="utf-8") as f:
+        return f.read()
 
 
 def normalize_text(text: str) -> str:
     """Return a normalized version of the text.
 
-    Suggested starter behavior:
     - lowercase the text
-    - remove or replace punctuation
-    - collapse extra whitespace if helpful
+    - remove punctuation
+    - collapse extra whitespace
     """
-    raise NotImplementedError
+    text = text.lower()
+    text = text.translate(str.maketrans("", "", string.punctuation))
+    # collapse multiple spaces/newlines into a single space
+    text = " ".join(text.split())
+    return text
 
 
 def tokenize(text: str) -> list[str]:
     """Split normalized text into a list of words."""
-    raise NotImplementedError
+    if not text.strip():
+        return []
+    return text.split()
 
 
 def count_words(words: list[str]) -> dict[str, int]:
     """Count how many times each word appears."""
-    raise NotImplementedError
+    counts: dict[str, int] = {}
+    for word in words:
+        counts[word] = counts.get(word, 0) + 1
+    return counts
 
 
 def top_n_words(counts: dict[str, int], n: int) -> list[tuple[str, int]]:
     """Return the top N words as (word, count) tuples.
 
-    Suggested behavior:
     - if n <= 0, return []
     - sort by count descending
     - for ties, sort alphabetically
     """
-    raise NotImplementedError
+    if n <= 0:
+        return []
+    sorted_words = sorted(counts.items(), key=lambda x: (-x[1], x[0]))
+    return sorted_words[:n]
 
 
 def extra_insight(words: list[str], counts: dict[str, int]) -> object:
-    """Return one extra insight of your choice.
+    """Return the average word length across all words.
 
-    Keep it small and well-defined.
-    Examples:
-    - list of words that appear once
-    - average word length
-    - longest unique word
+    Returns 0.0 if the word list is empty.
     """
-    raise NotImplementedError
+    if not words:
+        return 0.0
+    avg = sum(len(w) for w in words) / len(words)
+    return round(avg, 2)
 
 
 def run_demo(path: str, n: int = 10) -> dict[str, object]:
@@ -77,7 +88,11 @@ if __name__ == "__main__":
     demo_path = Path("data/sample.txt")
     if demo_path.exists():
         results = run_demo(str(demo_path), n=10)
-        for key, value in results.items():
-            print(f"{key}: {value}")
+        print(f"Total words    : {results['total_words']}")
+        print(f"Unique words   : {results['unique_words']}")
+        print(f"Avg word length: {results['extra_insight']}")
+        print("\nTop words:")
+        for word, count in results["top_words"]:
+            print(f"  {word:<20} {count}")
     else:
         print("No demo file found at data/sample.txt")
